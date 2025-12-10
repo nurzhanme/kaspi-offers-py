@@ -1,7 +1,7 @@
 """Tests for data models."""
 
 import pytest
-from models import Offer, OffersResponse
+from kaspi_offers_py import Offer, OffersResponse
 
 
 class TestOffer:

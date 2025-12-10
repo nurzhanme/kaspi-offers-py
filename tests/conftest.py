@@ -1,7 +1,7 @@
 """Pytest configuration and shared fixtures."""
 
 import pytest
-from client import KaspiClient
+from kaspi_offers_py import KaspiClient
 from tests.fixtures.sample_responses import (
     SAMPLE_OFFER_FULL,
     SAMPLE_OFFER_MINIMAL,

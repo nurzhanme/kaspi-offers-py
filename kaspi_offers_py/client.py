@@ -1,6 +1,6 @@
 import httpx
 from typing import Optional
-from models import OffersResponse
+from .models import OffersResponse
 
 
 class KaspiClient:

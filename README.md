@@ -4,7 +4,7 @@ Python client for Kaspi.kz offers API
 
 ## Installation
 ```bash
-pip install kaspi-offers-api
+pip install kaspi-offers-py
 ```
 
 ## Usage
@@ -59,5 +59,5 @@ response = await client.get_offers(
 
 ## Requirements
 
-- Python >= 3.8
+- Python >= 3.9
 - httpx >= 0.27.0

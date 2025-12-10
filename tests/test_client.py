@@ -2,8 +2,7 @@
 
 import pytest
 import httpx
-from client import KaspiClient
-from models import OffersResponse, Offer
+from kaspi_offers_py import KaspiClient, OffersResponse, Offer
 
 
 class TestKaspiClientInitialization:
