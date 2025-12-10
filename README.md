@@ -10,7 +10,7 @@ pip install kaspi-offers-py
 ## Usage
 ```python
 import asyncio
-from kaspi_offers_api import KaspiClient
+from kaspi_offers_py import KaspiClient
 
 async def main():
     client = KaspiClient()
@@ -61,3 +61,50 @@ response = await client.get_offers(
 
 - Python >= 3.9
 - httpx >= 0.27.0
+
+## Development
+
+### Install development dependencies
+
+**Using uv (recommended):**
+```bash
+# Automatically installs dev dependencies
+uv sync
+```
+
+**Using pip:**
+```bash
+pip install -e ".[dev]"
+```
+
+### Running tests
+
+**Using uv:**
+```bash
+# Unit tests (mocked, no network)
+uv run pytest -m "not integration"
+
+# Integration tests (real API calls, requires network)
+uv run pytest -m integration
+
+# All tests
+uv run pytest
+
+# With coverage
+uv run pytest --cov=kaspi_offers_py --cov-report=html
+```
+
+**Using pip/pytest directly:**
+```bash
+# Unit tests (mocked, no network)
+pytest -m "not integration"
+
+# Integration tests (real API calls, requires network)
+pytest -m integration
+
+# All tests
+pytest
+
+# With coverage
+pytest --cov=kaspi_offers_py --cov-report=html
+```
