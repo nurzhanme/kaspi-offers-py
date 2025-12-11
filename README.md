@@ -81,14 +81,14 @@ pip install -e ".[dev]"
 
 **Using uv:**
 ```bash
-# Unit tests (mocked, no network)
-uv run pytest -m "not integration"
+# Unit tests only (default - fast, no network)
+uv run pytest
 
 # Integration tests (real API calls, requires network)
 uv run pytest -m integration
 
-# All tests
-uv run pytest
+# All tests (unit + integration)
+uv run pytest -m ""
 
 # With coverage
 uv run pytest --cov=kaspi_offers_py --cov-report=html
@@ -96,14 +96,14 @@ uv run pytest --cov=kaspi_offers_py --cov-report=html
 
 **Using pip/pytest directly:**
 ```bash
-# Unit tests (mocked, no network)
-pytest -m "not integration"
+# Unit tests only (default - fast, no network)
+pytest
 
 # Integration tests (real API calls, requires network)
 pytest -m integration
 
-# All tests
-pytest
+# All tests (unit + integration)
+pytest -m ""
 
 # With coverage
 pytest --cov=kaspi_offers_py --cov-report=html

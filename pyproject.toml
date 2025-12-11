@@ -7,7 +7,7 @@ packages = ["kaspi_offers_py"]
 
 [project]
 name = "kaspi-offers-py"
-version = "0.1.5"
+version = "0.1.6"
 authors = [{name = "Nurzhan Aitbayev"}]
 description = "Python client for Kaspi.kz offers API"
 readme = "README.md"
@@ -35,7 +35,7 @@ dev = [
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
-addopts = "-v --strict-markers"
+addopts = "-v --strict-markers -m 'not integration'"
 markers = [
     "integration: marks tests as integration tests (requires network, deselect with '-m \"not integration\"')",
 ]
