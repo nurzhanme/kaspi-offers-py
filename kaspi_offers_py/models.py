@@ -13,10 +13,10 @@ class Offer:
     price: float
     merchantRating: float
     merchantReviewsQuantity: int
-    deliveryType: str
     deliveryDuration: Optional[str]
     kaspiDelivery: bool
     preorder: int
+    deliveryType: Optional[str] = None
     delivery: Optional[str] = None
     pickup: Optional[str] = None
 
@@ -31,7 +31,7 @@ class Offer:
             price=data['price'],
             merchantRating=data['merchantRating'],
             merchantReviewsQuantity=data['merchantReviewsQuantity'],
-            deliveryType=data['deliveryType'],
+            deliveryType=data.get('deliveryType'),
             deliveryDuration=data.get('deliveryDuration'),
             kaspiDelivery=data['kaspiDelivery'],
             preorder=data['preorder'],
