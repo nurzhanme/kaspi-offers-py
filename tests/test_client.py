@@ -25,6 +25,23 @@ class TestKaspiClientInitialization:
         assert kaspi_client.headers["Content-Type"] == "application/json"
         assert kaspi_client.headers["Referer"] == "https://kaspi.kz/shop/search/"
 
+    def test_default_proxy(self, kaspi_client):
+        """Test client is initialized with no proxy by default."""
+        assert kaspi_client.proxy is None
+
+    def test_custom_proxy(self, kaspi_client_with_proxy):
+        """Test client is initialized with custom proxy."""
+        assert kaspi_client_with_proxy.proxy == "http://proxy.example.com:8080"
+
+    def test_default_verbose(self, kaspi_client):
+        """Test client is initialized with verbose mode off by default."""
+        assert kaspi_client.verbose is False
+
+    def test_verbose_mode(self, kaspi_client_verbose):
+        """Test client is initialized with verbose mode enabled."""
+        assert kaspi_client_verbose.verbose is True
+        assert kaspi_client_verbose.logger is not None
+
 
 class TestKaspiClientGetOffers:
     """Tests for KaspiClient.get_offers() method."""
@@ -260,3 +277,111 @@ class TestKaspiClientAsync:
         # Verify all requests succeeded
         assert len(results) == 3
         assert all(isinstance(r, OffersResponse) for r in results)
+
+    @pytest.mark.asyncio
+    async def test_get_offers_with_proxy(
+        self, kaspi_client_with_proxy, sample_response_single_dict, httpx_mock
+    ):
+        """Test get_offers works with proxy configuration."""
+        httpx_mock.add_response(json=sample_response_single_dict)
+
+        response = await kaspi_client_with_proxy.get_offers(product_id="123")
+
+        # Verify the request succeeded
+        assert isinstance(response, OffersResponse)
+        assert kaspi_client_with_proxy.proxy == "http://proxy.example.com:8080"
+
+
+class TestKaspiClientConnectionTest:
+    """Tests for KaspiClient.test_connection() method."""
+
+    @pytest.mark.asyncio
+    async def test_connection_success(self, kaspi_client, httpx_mock):
+        """Test test_connection returns success with valid connection."""
+        httpbin_response = {
+            "args": {},
+            "headers": {},
+            "origin": "123.456.789.0",
+            "url": "https://httpbin.org/get"
+        }
+
+        httpx_mock.add_response(
+            url="https://httpbin.org/get",
+            json=httpbin_response,
+            status_code=200
+        )
+
+        result = await kaspi_client.test_connection()
+
+        assert result["success"] is True
+        assert result["status_code"] == 200
+        assert result["origin_ip"] == "123.456.789.0"
+        assert result["proxy"] is None
+        assert result["url_accessed"] == "https://httpbin.org/get"
+
+    @pytest.mark.asyncio
+    async def test_connection_with_proxy(self, kaspi_client_with_proxy, httpx_mock):
+        """Test test_connection works with proxy configuration."""
+        httpbin_response = {
+            "args": {},
+            "headers": {},
+            "origin": "111.222.333.444",
+            "url": "https://httpbin.org/get"
+        }
+
+        httpx_mock.add_response(
+            url="https://httpbin.org/get",
+            json=httpbin_response,
+            status_code=200
+        )
+
+        result = await kaspi_client_with_proxy.test_connection()
+
+        assert result["success"] is True
+        assert result["status_code"] == 200
+        assert result["origin_ip"] == "111.222.333.444"
+        assert result["proxy"] == "http://proxy.example.com:8080"
+
+    @pytest.mark.asyncio
+    async def test_connection_failure(self, kaspi_client, httpx_mock):
+        """Test test_connection raises exception on connection failure."""
+        httpx_mock.add_exception(
+            httpx.ConnectError("Connection failed"),
+            url="https://httpbin.org/get"
+        )
+
+        with pytest.raises(httpx.ConnectError):
+            await kaspi_client.test_connection()
+
+    @pytest.mark.asyncio
+    async def test_connection_timeout(self, kaspi_client_custom_timeout, httpx_mock):
+        """Test test_connection raises exception on timeout."""
+        httpx_mock.add_exception(
+            httpx.TimeoutException("Request timed out"),
+            url="https://httpbin.org/get"
+        )
+
+        with pytest.raises(httpx.TimeoutException):
+            await kaspi_client_custom_timeout.test_connection()
+
+
+class TestKaspiClientVerboseMode:
+    """Tests for KaspiClient verbose logging."""
+
+    @pytest.mark.asyncio
+    async def test_get_offers_verbose_logging(
+        self, kaspi_client_verbose, sample_response_single_dict, httpx_mock, caplog
+    ):
+        """Test that verbose mode logs debug information."""
+        import logging
+
+        httpx_mock.add_response(json=sample_response_single_dict)
+
+        with caplog.at_level(logging.DEBUG):
+            await kaspi_client_verbose.get_offers(product_id="123")
+
+        # Verify debug logs were created
+        assert any("Requesting offers for product_id=123" in record.message
+                   for record in caplog.records)
+        assert any("Successfully retrieved" in record.message
+                   for record in caplog.records)

@@ -65,3 +65,15 @@ def kaspi_client():
 def kaspi_client_custom_timeout():
     """Return a KaspiClient instance with custom timeout."""
     return KaspiClient(timeout=10)
+
+
+@pytest.fixture
+def kaspi_client_with_proxy():
+    """Return a KaspiClient instance with proxy configuration."""
+    return KaspiClient(proxy="http://proxy.example.com:8080")
+
+
+@pytest.fixture
+def kaspi_client_verbose():
+    """Return a KaspiClient instance with verbose mode enabled."""
+    return KaspiClient(verbose=True)
