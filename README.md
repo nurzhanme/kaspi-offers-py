@@ -30,6 +30,91 @@ async def main():
 asyncio.run(main())
 ```
 
+## Retry Behavior
+
+By default, the client automatically retries failed requests up to 3 times for:
+- **5xx Server Errors:** 500 (Internal Server Error), 502 (Bad Gateway), 503 (Service Unavailable), 504 (Gateway Timeout)
+- **Rate Limiting:** 429 (Too Many Requests)
+- **Network Errors:** Connection timeouts, network failures
+
+The retry logic uses **exponential backoff with jitter** to avoid overwhelming servers.
+
+### Default Retry (Enabled Automatically)
+```python
+import asyncio
+from kaspi_offers_py import KaspiClient
+
+async def main():
+    # Retry is enabled by default with 3 attempts
+    client = KaspiClient()
+
+    # Automatically retries on 5xx errors, 429, timeouts, etc.
+    response = await client.get_offers("123728177")
+    print(f"Found {response.total} offers")
+
+asyncio.run(main())
+```
+
+### Custom Retry Configuration
+```python
+import asyncio
+from kaspi_offers_py import KaspiClient
+
+async def main():
+    # Custom retry configuration
+    client = KaspiClient(
+        max_retries=5,                    # Retry up to 5 times
+        retry_status_codes=[429, 500, 502, 503, 504],  # Also retry on 500
+        backoff_factor=1.0,               # More aggressive backoff
+        max_backoff_wait=120.0,           # Wait up to 2 minutes
+    )
+
+    response = await client.get_offers("123728177")
+    print(f"Found {response.total} offers")
+
+asyncio.run(main())
+```
+
+### Disable Retry
+```python
+import asyncio
+from kaspi_offers_py import KaspiClient
+
+async def main():
+    # Disable retry for faster failures
+    client = KaspiClient(max_retries=0)
+
+    # OR
+    # client = KaspiClient(max_retries=None)
+
+    response = await client.get_offers("123728177")
+
+asyncio.run(main())
+```
+
+### Retry with Verbose Logging
+```python
+import asyncio
+from kaspi_offers_py import KaspiClient
+
+async def main():
+    # See detailed retry information in logs
+    client = KaspiClient(verbose=True, max_retries=5)
+
+    response = await client.get_offers("123728177")
+
+asyncio.run(main())
+```
+
+When verbose mode is enabled with retry, you'll see logs like:
+```
+2025-12-17 10:30:45 - kaspi_offers_py.client - DEBUG - KaspiClient initialized with timeout=30, proxy=None
+2025-12-17 10:30:45 - kaspi_offers_py.client - DEBUG - Retry enabled: max_retries=5, backoff_factor=0.5, retry_status_codes=[429, 500, 502, 503, 504]
+2025-12-17 10:30:45 - kaspi_offers_py.client - DEBUG - Requesting offers for product_id=123728177
+2025-12-17 10:30:46 - kaspi_offers_py.client - DEBUG - Response status: 200
+2025-12-17 10:30:46 - kaspi_offers_py.client - DEBUG - Successfully retrieved 64 offers
+```
+
 ### Using a Proxy
 ```python
 import asyncio
@@ -116,11 +201,24 @@ When verbose mode is enabled, you'll see detailed logs like:
 ### Client Initialization
 ```python
 client = KaspiClient(
-    timeout=30,   # Request timeout in seconds (default: 30)
-    proxy=None,   # Optional proxy URL (default: None)
-    verbose=False # Enable debug logging (default: False)
+    timeout=30,              # Request timeout in seconds (default: 30)
+    proxy=None,              # Optional proxy URL (default: None)
+    verbose=False,           # Enable debug logging (default: False)
+    max_retries=3,           # Max retry attempts (default: 3, None/0 to disable)
+    retry_status_codes=None, # Status codes to retry (default: [429, 502, 503, 504])
+    backoff_factor=0.5,      # Exponential backoff multiplier (default: 0.5)
+    max_backoff_wait=60.0,   # Max seconds between retries (default: 60.0)
 )
 ```
+
+**Parameters:**
+- `timeout`: Request timeout in seconds
+- `proxy`: Optional proxy URL for requests (supports HTTP, HTTPS, SOCKS5)
+- `verbose`: Enable detailed debug logging
+- `max_retries`: Number of retry attempts for failed requests. Set to `None` or `0` to disable retry
+- `retry_status_codes`: List of HTTP status codes that trigger retry. Defaults to `[429, 500, 502, 503, 504]`
+- `backoff_factor`: Multiplier for exponential backoff between retries. Wait time = `backoff_factor * (2 ** attempts_made)` with jitter
+- `max_backoff_wait`: Maximum seconds to wait between retry attempts
 
 ### Getting Offers
 ```python
@@ -153,6 +251,7 @@ response = await client.get_offers(
 
 - Python >= 3.9
 - httpx >= 0.27.0
+- httpx-retries >= 0.4.0
 
 ## Development
 

@@ -195,8 +195,10 @@ class TestKaspiClientErrorHandling:
 
     @pytest.mark.asyncio
     async def test_get_offers_http_500_error(self, kaspi_client, httpx_mock):
-        """Test get_offers raises error on 500 response."""
-        httpx_mock.add_response(status_code=500)
+        """Test get_offers raises error on 500 response after retries."""
+        # Add 500 response 4 times: 1 initial + 3 retries
+        for _ in range(4):
+            httpx_mock.add_response(status_code=500)
 
         with pytest.raises(httpx.HTTPStatusError):
             await kaspi_client.get_offers(product_id="123")
@@ -211,16 +213,20 @@ class TestKaspiClientErrorHandling:
 
     @pytest.mark.asyncio
     async def test_get_offers_timeout(self, kaspi_client_custom_timeout, httpx_mock):
-        """Test get_offers handles timeout."""
-        httpx_mock.add_exception(httpx.TimeoutException("Request timed out"))
+        """Test get_offers handles timeout after retries."""
+        # Add exception 4 times: 1 initial + 3 retries
+        for _ in range(4):
+            httpx_mock.add_exception(httpx.TimeoutException("Request timed out"))
 
         with pytest.raises(httpx.TimeoutException):
             await kaspi_client_custom_timeout.get_offers(product_id="123")
 
     @pytest.mark.asyncio
     async def test_get_offers_connection_error(self, kaspi_client, httpx_mock):
-        """Test get_offers handles connection errors."""
-        httpx_mock.add_exception(httpx.ConnectError("Connection failed"))
+        """Test get_offers handles connection errors after retries."""
+        # Add exception 4 times: 1 initial + 3 retries
+        for _ in range(4):
+            httpx_mock.add_exception(httpx.ConnectError("Connection failed"))
 
         with pytest.raises(httpx.ConnectError):
             await kaspi_client.get_offers(product_id="123")
@@ -344,22 +350,26 @@ class TestKaspiClientConnectionTest:
 
     @pytest.mark.asyncio
     async def test_connection_failure(self, kaspi_client, httpx_mock):
-        """Test test_connection raises exception on connection failure."""
-        httpx_mock.add_exception(
-            httpx.ConnectError("Connection failed"),
-            url="https://httpbin.org/get"
-        )
+        """Test test_connection raises exception on connection failure after retries."""
+        # Add exception 4 times: 1 initial + 3 retries (max_retries=3 means 3 retries after initial)
+        for _ in range(4):
+            httpx_mock.add_exception(
+                httpx.ConnectError("Connection failed"),
+                url="https://httpbin.org/get"
+            )
 
         with pytest.raises(httpx.ConnectError):
             await kaspi_client.test_connection()
 
     @pytest.mark.asyncio
     async def test_connection_timeout(self, kaspi_client_custom_timeout, httpx_mock):
-        """Test test_connection raises exception on timeout."""
-        httpx_mock.add_exception(
-            httpx.TimeoutException("Request timed out"),
-            url="https://httpbin.org/get"
-        )
+        """Test test_connection raises exception on timeout after retries."""
+        # Add exception 4 times: 1 initial + 3 retries (max_retries=3 means 3 retries after initial)
+        for _ in range(4):
+            httpx_mock.add_exception(
+                httpx.TimeoutException("Request timed out"),
+                url="https://httpbin.org/get"
+            )
 
         with pytest.raises(httpx.TimeoutException):
             await kaspi_client_custom_timeout.test_connection()

@@ -77,3 +77,9 @@ def kaspi_client_with_proxy():
 def kaspi_client_verbose():
     """Return a KaspiClient instance with verbose mode enabled."""
     return KaspiClient(verbose=True)
+
+
+@pytest.fixture
+def kaspi_client_no_retry():
+    """Return a KaspiClient instance with retry disabled."""
+    return KaspiClient(max_retries=0)
