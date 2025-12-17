@@ -7,7 +7,7 @@ packages = ["kaspi_offers_py"]
 
 [project]
 name = "kaspi-offers-py"
-version = "0.2.0-fix1"
+version = "0.2.1"
 authors = [{name = "Nurzhan Aitbayev"}]
 description = "Python client for Kaspi.kz offers API"
 readme = "README.md"
