@@ -143,7 +143,8 @@ class KaspiClient:
             "cityId": city_id,
             "id": product_id,
             "limit": limit,
-            "page": page
+            "page": page,
+            "sortOption": "PRICE"
         }
 
         self.logger.debug(f"Requesting offers for product_id={product_id}")
